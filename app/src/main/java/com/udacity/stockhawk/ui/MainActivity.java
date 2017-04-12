@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         swipeRefreshLayout.setOnRefreshListener(this);
         swipeRefreshLayout.setRefreshing(true);
+        swipeRefreshLayout.setContentDescription(getString(R.string.a11y_swipe_to_refresh));
         onRefresh();
 
         QuoteSyncJob.initialize(this);
@@ -80,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
             }
         }).attachToRecyclerView(stockRecyclerView);
+        stockRecyclerView.setContentDescription(getString(R.string.a11y_description_swipe_to_delete));
 
 
     }
@@ -161,8 +163,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (PrefUtils.getDisplayMode(this)
                 .equals(getString(R.string.pref_display_mode_absolute_key))) {
             item.setIcon(R.drawable.ic_percentage);
+            item.setTitle(R.string.a11y_menu_display_mode_absolute);
         } else {
             item.setIcon(R.drawable.ic_dollar);
+            item.setTitle(R.string.a11y_menu_display_mode_dollar);
+
         }
     }
 
