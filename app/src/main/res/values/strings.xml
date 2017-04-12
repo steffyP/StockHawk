@@ -1,39 +1,44 @@
 <resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
     <string name="app_name">Stock Hawk</string>
 
+    <!-- Preferences -->
     <string name="pref_stocks_initialized_key" translatable="false">initialized</string>
 
-    <string name="pref_stocks_key">stocks</string>
+    <string name="pref_stocks_key" translatable="false">stocks</string>
 
 
-    <string name="pref_display_mode_key">displayMode</string>
+    <string name="pref_display_mode_key" translatable="false">displayMode</string>
     <string name="pref_display_mode_default">@string/pref_display_mode_percentage_key</string>
 
-    <string name="pref_display_mode_absolute_key">absolute</string>
-    <string name="pref_display_mode_percentage_key">percentage</string>
-
-    <string name="default_stocks_yahoo">YHOO</string>
-    <string name="default_stocks_apple">AAPL</string>
-    <string name="default_stocks_microsoft">MSFT</string>
-    <string name="default_stocks_facebook">FB</string>
+    <string name="pref_display_mode_absolute_key" translatable="false">absolute</string>
+    <string name="pref_display_mode_percentage_key" translatable="false">percentage</string>
 
 
-    <string name="action_change_units">@string/pref_display_mode_key</string>
+    <!-- Default Values for filling the list on start TODO maybe needs to removed? -->
+    <string name="default_stocks_yahoo" translatable="false">YHOO</string>
+    <string name="default_stocks_apple" translatable="false">AAPL</string>
+    <string name="default_stocks_microsoft" translatable="false">MSFT</string>
+    <string name="default_stocks_facebook" translatable="false">FB</string>
+
+    <!--TODO do we need this?-->
+    <!--<string name="action_change_units">@string/pref_display_mode_key</string>-->
 
 
+    <!-- Dialog for adding stock -->
     <string name="dialog_title">Add Stock</string>
     <string name="dialog_hint">Symbol (e.g. GOOG)</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_add">Add</string>
 
+    <!-- Error messages -->
     <string name="error_no_network">No network connectivity! Will load stock cursor when the network is available.</string>
     <string name="error_no_stocks">No stocks added! Hit the floating action button to add one.</string>
 
     <string name="toast_stock_added_no_connectivity">Symbol %s added. Will refresh when network available.</string>
     <string name="toast_no_connectivity">Will refresh when network available.</string>
 
-    <!-- Accessibility Description -->
 
+    <!-- Accessibility Description -->
     <string name="a11y_menu_display_mode_absolute">Displaying absolute changes of stock. Click to toggle and display stock changes in percent.</string>
     <string name="a11y_menu_display_mode_dollar">Displaying changes in percent. Click to toggle and display absolute stock changes.</string>
     <string name="a11y_add_stock">Button add stock to be displayed in the list</string>
