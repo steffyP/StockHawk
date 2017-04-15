@@ -82,6 +82,9 @@ public final class QuoteSyncJob {
                 boolean hasValidPrice = quote.getPrice() == null ? false : true;
 
                 if(! hasValidPrice){
+                    // we can assume that there exists no stock with this symbol
+                    //so we show a message and remove the stock from the preference
+                    PrefUtils.removeStock(context, symbol);
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
