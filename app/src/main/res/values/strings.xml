@@ -40,7 +40,6 @@
     <string name="toast_unknown_stock">Unknown stock <xliff:g name="stock_symbol">%s</xliff:g></string>
 
 
-
     <!-- Accessibility Description -->
     <string name="a11y_menu_display_mode_absolute">Displaying absolute changes of stock. Click to toggle and display stock changes in percent.</string>
     <string name="a11y_menu_display_mode_dollar">Displaying changes in percent. Click to toggle and display absolute stock changes.</string>
@@ -50,5 +49,8 @@
     <string name="a11y_change_relative">Relative change <xliff:g name="abs">%s</xliff:g></string>
     <string name="a11y_description_swipe_to_delete">Swipe to left to delete the stock from the list.</string>
     <string name="a11y_swipe_to_refresh">Swipe down to refresh the stock list</string>
+    <string name="a11y_description_chart">Chart describing details of stock</string>
+    <string name="title_details">Historic Data for <xliff:g name="stock">%s</xliff:g></string>
+    <string name="current_value">Current price</string>
 
 </resources>
