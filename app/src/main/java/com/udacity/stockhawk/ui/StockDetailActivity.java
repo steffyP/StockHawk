@@ -37,7 +37,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
 
-public class StockDetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class StockDetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int DETAIL_LOADER = 1;
     private Uri mUri;
@@ -46,11 +46,23 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
     @BindView(R.id.chart)
     LineChart mLineChart;
 
+    @BindView(R.id.stock)
+    TextView mStockTextView;
+
+    @BindView(R.id.change_percent)
+    TextView mChangePercentTextView;
+
     @BindView(R.id.change)
     TextView mChangeTextView;
 
     @BindView(R.id.price)
     TextView mPriceTextView;
+
+    private ArrayList<String> dateLabelList;
+    private DecimalFormat dollarFormat;
+    private DecimalFormat decimalFormat;
+    private DecimalFormat dollarFormatWithPlus;
+    private DecimalFormat percentageFormat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +74,28 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
         getSupportActionBar().setTitle(getString(R.string.title_details));
         mUri = getIntent().getData();
 
-        getSupportLoaderManager().restartLoader(DETAIL_LOADER, null, this);
+        getSupportLoaderManager().initLoader(DETAIL_LOADER, null, this);
 
+
+        dollarFormat = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
+        decimalFormat = new DecimalFormat("##.00");
+        dollarFormatWithPlus = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
+        dollarFormatWithPlus.setPositivePrefix("+$");
+
+
+        percentageFormat = (DecimalFormat) NumberFormat.getPercentInstance(Locale.getDefault());
+        percentageFormat.setMaximumFractionDigits(2);
+        percentageFormat.setMinimumFractionDigits(2);
+        percentageFormat.setPositivePrefix("+");
+
+        formatAxisOfChart();
+
+        mLineChart.getLegend().setEnabled(false);
+        mLineChart.setDescription(null);
+        mLineChart.setContentDescription(getString(R.string.a11y_description_chart));
+        mLineChart.setScaleYEnabled(false);
+        mLineChart.setKeepPositionOnRotation(true);
+        mLineChart.setAutoScaleMinMaxEnabled(true);
     }
 
 
@@ -95,7 +127,7 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if ( null != mUri ) {
+        if (null != mUri) {
             // Now create and return a CursorLoader that will take care of
             // creating a Cursor for the data being displayed.
             return new CursorLoader(
@@ -106,138 +138,125 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
                     null,
                     null
             );
-        } else {
-            //TODO
         }
+
         return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if(data != null && data.moveToFirst()){
+        if (data != null && data.moveToFirst()) {
             String stock = data.getString(data.getColumnIndex(Contract.Quote.COLUMN_SYMBOL));
-            getSupportActionBar().setTitle(getString(R.string.title_details, stock));
-            final DecimalFormat dollarFormat = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
-            final DecimalFormat decimalFormat =  new DecimalFormat("##.00");
-            DecimalFormat dollarFormatWithPlus = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
-            dollarFormatWithPlus.setPositivePrefix("+$");
+            mStockTextView.setText(stock);
+
 
             mPriceTextView.setText(dollarFormat.format(data.getFloat(data.getColumnIndex(Contract.Quote.COLUMN_PRICE))));
 
             double priceChange = data.getFloat(data.getColumnIndex(Contract.Quote.COLUMN_ABSOLUTE_CHANGE));
 
-            if(priceChange > 0 ){
+            if (priceChange > 0) {
                 mChangeTextView.setBackgroundResource(R.drawable.percent_change_pill_green);
+
             } else {
                 mChangeTextView.setBackgroundResource(R.drawable.percent_change_pill_red);
+
             }
             mChangeTextView.setText(dollarFormatWithPlus.format(priceChange));
+            mChangePercentTextView.setText(percentageFormat.format(data.getFloat(data.getColumnIndex(Contract.Quote.COLUMN_PERCENTAGE_CHANGE)) / 100));
 
-            Timber.d(data.getString(data.getColumnIndex(Contract.Quote.COLUMN_HISTORY)));
             String historyString = data.getString(data.getColumnIndex(Contract.Quote.COLUMN_HISTORY));
+            Timber.d("history data: " + historyString);
 
-            String[] historyArray = historyString.split("\n");
-
-            List<Entry> entries = new ArrayList<Entry>();
-            String dateString = "";
-            String amountString = "";
-            DateFormat formatter = new SimpleDateFormat("dd/MM/yy");
-            int indexToSplit = 0;
-            float xAxisPlaceholder = 1f;
-            final List<String> dateLabelList = new ArrayList<>();
-            String history = "";
-            for (int i = historyArray.length-1; i >= 0; i--) {
-                history = historyArray[i];
-                // turn your data into Entry objects
-                indexToSplit = history.indexOf(',');
-                dateString = formatter.format(Long.parseLong(history.substring(0, indexToSplit)));
-                dateLabelList.add(dateString);
-
-                amountString = history.substring(indexToSplit+1, history.length());
-
-                entries.add(new Entry(xAxisPlaceholder, Float.parseFloat(amountString)));
-                xAxisPlaceholder++;
+            // if the string is empty, something went wrong with the request
+            // probably the limit of requests has been reached
+            if (historyString.isEmpty()) {
+                return;
             }
-
-            LineDataSet lineDataSet = new LineDataSet(entries, stock);
-            //lineDataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
-
-
-            // the labels that should be drawn on the XAxis
-
-            IAxisValueFormatter xAxisFormatter = new IAxisValueFormatter() {
-
-                @Override
-                public String getFormattedValue(float value, AxisBase axis) {
-                    Timber.d(value+"");
-                    if(value <= dateLabelList.size()) {
-                        return dateLabelList.get((int) value - 1);
-                    }
-                    return "";
-                }
-
-            };
-
-
-            IAxisValueFormatter axisFormatter = new IAxisValueFormatter() {
-
-                @Override
-                public String getFormattedValue(float value, AxisBase axis) {
-                    return dollarFormat.format(value) ;
-                }
-
-            };
-
-
-            IValueFormatter yAxisFormatter = new IValueFormatter() {
-
-                @Override
-                public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
-                    return dollarFormat.format(value) ;
-                }
-
-            };
-
-            IValueFormatter graphicFormatter = new IValueFormatter() {
-
-                @Override
-                public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
-                    return decimalFormat.format(value) ;
-                }
-
-            };
-
-
-            lineDataSet.setValueFormatter(graphicFormatter);
-
-            lineDataSet.setCircleColor(getResources().getColor(android.R.color.transparent));
-            lineDataSet.setColor(getResources().getColor(R.color.colorPrimary));
-            lineDataSet.setCircleColorHole(getResources().getColor(android.R.color.white));
-            lineDataSet.setValueTextColor(getResources().getColor(android.R.color.darker_gray));
-        //    lineDataSet.setValueTextColor(R.color.colorAccent);
-
-
-            XAxis xAxis = mLineChart.getXAxis();
-            xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
-            xAxis.setValueFormatter(xAxisFormatter);
-            xAxis.setTextColor(getResources().getColor(android.R.color.white));
-
-            mLineChart.getAxisLeft().setTextColor(getResources().getColor(android.R.color.white));
-            mLineChart.getAxisLeft().setValueFormatter(axisFormatter);
-
-            mLineChart.getAxisRight().setDrawLabels(false);
-
-            LineData lineData = new LineData(lineDataSet);
-            mLineChart.getLegend().setEnabled(false);
+            List<Entry> entries = createEntriesFromHistory(historyString);
+            LineData lineData = new LineData(createFormattedLineDataSet(entries, stock));
             mLineChart.setData(lineData);
-            mLineChart.setDescription(null);
-            mLineChart.setContentDescription(getString(R.string.a11y_description_chart));
-            mLineChart.setScaleYEnabled(false);
-            mLineChart.setKeepPositionOnRotation(true);
-            mLineChart.setAutoScaleMinMaxEnabled(true);
+
             mLineChart.invalidate();
 
         }
+    }
+
+    private void formatAxisOfChart() {
+        XAxis xAxis = mLineChart.getXAxis();
+        xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
+        xAxis.setValueFormatter(new IAxisValueFormatter() {
+
+            @Override
+            public String getFormattedValue(float value, AxisBase axis) {
+                Timber.d(value + "");
+                if (value <= dateLabelList.size()) {
+                    return dateLabelList.get((int) value - 1);
+                }
+                return "";
+            }
+
+        });
+        xAxis.setTextColor(getResources().getColor(android.R.color.white));
+
+        mLineChart.getAxisLeft().setTextColor(getResources().getColor(android.R.color.white));
+        mLineChart.getAxisLeft().setValueFormatter(new IAxisValueFormatter() {
+
+            @Override
+            public String getFormattedValue(float value, AxisBase axis) {
+                return dollarFormat.format(value) ;
+            }
+
+        });
+
+        mLineChart.getAxisRight().setDrawLabels(false);
+
+    }
+
+    private LineDataSet createFormattedLineDataSet(List<Entry> entries, String stock) {
+        LineDataSet lineDataSet = new LineDataSet(entries, stock);
+
+
+        lineDataSet.setValueFormatter(new IValueFormatter() {
+
+            @Override
+            public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
+                return decimalFormat.format(value);
+            }
+        });
+
+        lineDataSet.setCircleColor(getResources().getColor(android.R.color.transparent));
+        lineDataSet.setColor(getResources().getColor(R.color.colorPrimary));
+        lineDataSet.setCircleColorHole(getResources().getColor(android.R.color.white));
+        lineDataSet.setValueTextColor(getResources().getColor(android.R.color.darker_gray));
+
+        return lineDataSet;
+    }
+
+    private List<Entry> createEntriesFromHistory(String historyString) {
+        String[] historyArray = historyString.split("\n");
+
+        List<Entry> entries = new ArrayList<Entry>();
+        String dateString;
+        String amountString;
+        DateFormat formatter = new SimpleDateFormat("dd/MM/yy");
+        int indexToSplit = 0;
+        float xAxisPlaceholder = 1f;
+        dateLabelList = new ArrayList<>();
+        String history;
+        for (int i = historyArray.length - 1; i >= 0; i--) {
+            history = historyArray[i];
+
+            // turn your data into Entry objects
+            indexToSplit = history.indexOf(',');
+            dateString = formatter.format(Long.parseLong(history.substring(0, indexToSplit)));
+            dateLabelList.add(dateString);
+
+            amountString = history.substring(indexToSplit + 1, history.length());
+
+            entries.add(new Entry(xAxisPlaceholder, Float.parseFloat(amountString)));
+            xAxisPlaceholder++;
+        }
+        return entries;
     }
 
     @Override

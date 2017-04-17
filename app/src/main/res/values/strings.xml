@@ -50,7 +50,7 @@
     <string name="a11y_description_swipe_to_delete">Swipe to left to delete the stock from the list.</string>
     <string name="a11y_swipe_to_refresh">Swipe down to refresh the stock list</string>
     <string name="a11y_description_chart">Chart describing details of stock</string>
-    <string name="title_details">Historic Data for <xliff:g name="stock">%s</xliff:g></string>
+    <string name="title_details">Details - Historic Data</string>
     <string name="current_value">Current price</string>
 
 </resources>
