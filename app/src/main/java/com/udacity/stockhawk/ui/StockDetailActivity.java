@@ -96,6 +96,14 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
         mLineChart.setScaleYEnabled(false);
         mLineChart.setKeepPositionOnRotation(true);
         mLineChart.setAutoScaleMinMaxEnabled(true);
+
+        mLineChart.setHighlightPerTapEnabled(true);
+
+        // deprecated, but still only documentation on how to set markerview
+        // https://github.com/PhilJay/MPAndroidChart/wiki/MarkerView
+        mLineChart.setDrawMarkerViews(true);
+        mLineChart.setMarkerView(new CustomMarkerView(this, R.layout.view_custom_marker));
+
     }
 
 
