@@ -150,12 +150,10 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
 
             double priceChange = data.getFloat(data.getColumnIndex(Contract.Quote.COLUMN_ABSOLUTE_CHANGE));
 
-            if (priceChange > 0) {
-                mChangeTextView.setBackgroundResource(R.drawable.percent_change_pill_green);
-
-            } else {
+            if (priceChange < 0 ) {
                 mChangeTextView.setBackgroundResource(R.drawable.percent_change_pill_red);
-
+            } else {
+                mChangeTextView.setBackgroundResource(R.drawable.percent_change_pill_green);
             }
             mChangeTextView.setText(FormatterHelperUtil.getInstance().formatDollarValueWithPlus((float) priceChange));
             mChangePercentTextView.setText(FormatterHelperUtil.getInstance().formatPercentageValue(data.getFloat(data.getColumnIndex(Contract.Quote.COLUMN_PERCENTAGE_CHANGE)) / 100));

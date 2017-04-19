@@ -102,11 +102,10 @@ public class StockWidgetService extends RemoteViewsService {
             float changeFloat = mCursor.getFloat(Contract.Quote.POSITION_ABSOLUTE_CHANGE);
 
 
-            if (changeFloat > 0) {
-                rv.setInt(R.id.change, "setBackgroundResource", R.drawable.percent_change_pill_green);
-            } else {
+            if (changeFloat < 0) {
                 rv.setInt(R.id.change, "setBackgroundResource", R.drawable.percent_change_pill_red);
-
+            } else {
+                rv.setInt(R.id.change, "setBackgroundResource", R.drawable.percent_change_pill_green);
             }
             if (PrefUtils.getDisplayMode(mContext)
                     .equals(mContext.getString(R.string.pref_display_mode_absolute_key))) {

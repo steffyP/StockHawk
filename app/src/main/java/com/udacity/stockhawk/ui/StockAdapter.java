@@ -63,10 +63,12 @@ class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
         float rawAbsoluteChange = cursor.getFloat(Contract.Quote.POSITION_ABSOLUTE_CHANGE);
         float percentageChange = cursor.getFloat(Contract.Quote.POSITION_PERCENTAGE_CHANGE);
 
-        if (rawAbsoluteChange > 0) {
-            holder.change.setBackgroundResource(R.drawable.percent_change_pill_green);
-        } else {
+        // to avoid inconsistent behavior: numbers >= 0 will be displayed with a leading "+"
+        // so only numbers smaller 0 should be highlighted red (and will have a leading "-")
+        if (rawAbsoluteChange < 0) {
             holder.change.setBackgroundResource(R.drawable.percent_change_pill_red);
+        } else {
+            holder.change.setBackgroundResource(R.drawable.percent_change_pill_green);
         }
 
         String change = FormatterHelperUtil.getInstance().formatDollarValueWithPlus(rawAbsoluteChange);
