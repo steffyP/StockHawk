@@ -31,7 +31,7 @@
     <string name="dialog_add">Add</string>
 
     <!-- Error messages -->
-    <string name="error_no_network">No network connectivity! Will load stock cursor when the network is available.</string>
+    <string name="error_no_data_available">Data could not be loaded.</string>
     <string name="error_no_stocks">No stocks added! Hit the floating action button to add one.</string>
 
     <string name="toast_stock_added_no_connectivity">Symbol %s added. Will refresh when network available.</string>
@@ -51,6 +51,6 @@
     <string name="a11y_swipe_to_refresh">Swipe down to refresh the stock list</string>
     <string name="a11y_description_chart">Chart describing details of stock</string>
     <string name="title_details">Details - Historic Data</string>
-    <string name="current_value">Current price</string>
+    <string name="empty_view_text">No stock information available.</string>
 
 </resources>

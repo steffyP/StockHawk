@@ -1,5 +1,6 @@
-package com.udacity.stockhawk.ui;
+package com.udacity.stockhawk.ui.stockdetails;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -24,14 +25,12 @@ import com.github.mikephil.charting.formatter.IValueFormatter;
 import com.github.mikephil.charting.utils.ViewPortHandler;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
+import com.udacity.stockhawk.util.FormatterHelperUtil;
 
 import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -46,23 +45,22 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
     @BindView(R.id.chart)
     LineChart mLineChart;
 
+    @SuppressWarnings("WeakerAccess")
     @BindView(R.id.stock)
     TextView mStockTextView;
 
+    @SuppressWarnings("WeakerAccess")
     @BindView(R.id.change_percent)
     TextView mChangePercentTextView;
 
     @BindView(R.id.change)
     TextView mChangeTextView;
 
+    @SuppressWarnings("WeakerAccess")
     @BindView(R.id.price)
     TextView mPriceTextView;
 
     private ArrayList<String> dateLabelList;
-    private DecimalFormat dollarFormat;
-    private DecimalFormat decimalFormat;
-    private DecimalFormat dollarFormatWithPlus;
-    private DecimalFormat percentageFormat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,17 +75,6 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
         getSupportLoaderManager().initLoader(DETAIL_LOADER, null, this);
 
 
-        dollarFormat = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
-        decimalFormat = new DecimalFormat("##.00");
-        dollarFormatWithPlus = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
-        dollarFormatWithPlus.setPositivePrefix("+$");
-
-
-        percentageFormat = (DecimalFormat) NumberFormat.getPercentInstance(Locale.getDefault());
-        percentageFormat.setMaximumFractionDigits(2);
-        percentageFormat.setMinimumFractionDigits(2);
-        percentageFormat.setPositivePrefix("+");
-
         formatAxisOfChart();
 
         mLineChart.getLegend().setEnabled(false);
@@ -99,10 +86,11 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
 
         mLineChart.setHighlightPerTapEnabled(true);
 
-        // deprecated, but still only documentation on how to set markerview
-        // https://github.com/PhilJay/MPAndroidChart/wiki/MarkerView
+        // deprecated, but still easiest way and also recommended in the official documentation
+        //noinspection deprecation
         mLineChart.setDrawMarkerViews(true);
-        mLineChart.setMarkerView(new CustomMarkerView(this, R.layout.view_custom_marker));
+        //noinspection deprecation
+        mLineChart.setMarkerView(new CustomMarkerView(this));
 
     }
 
@@ -139,7 +127,7 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
             // Now create and return a CursorLoader that will take care of
             // creating a Cursor for the data being displayed.
             return new CursorLoader(
-                    StockDetailActivity.this,
+                    this,
                     mUri,
                     Contract.Quote.QUOTE_COLUMNS.toArray(new String[]{}),
                     null,
@@ -158,7 +146,7 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
             mStockTextView.setText(stock);
 
 
-            mPriceTextView.setText(dollarFormat.format(data.getFloat(data.getColumnIndex(Contract.Quote.COLUMN_PRICE))));
+            mPriceTextView.setText(FormatterHelperUtil.getInstance().formatDollarValue(data.getFloat(data.getColumnIndex(Contract.Quote.COLUMN_PRICE))));
 
             double priceChange = data.getFloat(data.getColumnIndex(Contract.Quote.COLUMN_ABSOLUTE_CHANGE));
 
@@ -169,8 +157,8 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
                 mChangeTextView.setBackgroundResource(R.drawable.percent_change_pill_red);
 
             }
-            mChangeTextView.setText(dollarFormatWithPlus.format(priceChange));
-            mChangePercentTextView.setText(percentageFormat.format(data.getFloat(data.getColumnIndex(Contract.Quote.COLUMN_PERCENTAGE_CHANGE)) / 100));
+            mChangeTextView.setText(FormatterHelperUtil.getInstance().formatDollarValueWithPlus((float) priceChange));
+            mChangePercentTextView.setText(FormatterHelperUtil.getInstance().formatPercentageValue(data.getFloat(data.getColumnIndex(Contract.Quote.COLUMN_PERCENTAGE_CHANGE)) / 100));
 
             String historyString = data.getString(data.getColumnIndex(Contract.Quote.COLUMN_HISTORY));
             Timber.d("history data: " + historyString);
@@ -211,7 +199,7 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
 
             @Override
             public String getFormattedValue(float value, AxisBase axis) {
-                return dollarFormat.format(value) ;
+                return FormatterHelperUtil.getInstance().formatDollarValue(value) ;
             }
 
         });
@@ -220,6 +208,7 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
 
     }
 
+    @SuppressWarnings("deprecation")
     private LineDataSet createFormattedLineDataSet(List<Entry> entries, String stock) {
         LineDataSet lineDataSet = new LineDataSet(entries, stock);
 
@@ -228,7 +217,7 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
 
             @Override
             public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
-                return decimalFormat.format(value);
+                return FormatterHelperUtil.getInstance().formatDecimalValue(value);
             }
         });
 
@@ -246,8 +235,8 @@ public class StockDetailActivity extends AppCompatActivity implements LoaderMana
         List<Entry> entries = new ArrayList<Entry>();
         String dateString;
         String amountString;
-        DateFormat formatter = new SimpleDateFormat("dd/MM/yy");
-        int indexToSplit = 0;
+        @SuppressLint("SimpleDateFormat") DateFormat formatter = new SimpleDateFormat("dd/MM/yy");
+        int indexToSplit;
         float xAxisPlaceholder = 1f;
         dateLabelList = new ArrayList<>();
         String history;

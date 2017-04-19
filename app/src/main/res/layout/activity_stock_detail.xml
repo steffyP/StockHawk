@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.udacity.stockhawk.ui.StockDetailActivity">
+    tools:context="com.udacity.stockhawk.ui.stockdetails.StockDetailActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -41,7 +41,8 @@
             android:layout_centerInParent="true"
             android:layout_marginEnd="8dp"
             android:padding="1dp"
-            android:layout_toStartOf="@+id/change_percent" />
+            android:layout_toStartOf="@+id/change_percent"
+            tools:ignore="RelativeOverlap" />
 
 
         <TextView

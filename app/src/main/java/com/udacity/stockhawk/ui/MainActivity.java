@@ -23,7 +23,8 @@ import android.widget.Toast;
 
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
-import com.udacity.stockhawk.data.PrefUtils;
+import com.udacity.stockhawk.ui.stockdetails.StockDetailActivity;
+import com.udacity.stockhawk.util.PrefUtils;
 import com.udacity.stockhawk.sync.QuoteSyncJob;
 
 import butterknife.BindView;
@@ -44,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @SuppressWarnings("WeakerAccess")
     @BindView(R.id.error)
     TextView error;
+
+
     private StockAdapter adapter;
 
     @Override
@@ -62,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        swipeRefreshLayout.setRefreshing(true);
+
         adapter = new StockAdapter(this, this);
         stockRecyclerView.setAdapter(adapter);
         stockRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -69,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         swipeRefreshLayout.setOnRefreshListener(this);
         swipeRefreshLayout.setRefreshing(true);
         swipeRefreshLayout.setContentDescription(getString(R.string.a11y_swipe_to_refresh));
-        onRefresh();
 
         QuoteSyncJob.initialize(this);
         getSupportLoaderManager().initLoader(STOCK_LOADER, null, this);
@@ -85,11 +89,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
                 PrefUtils.removeStock(MainActivity.this, symbol);
                 getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
+
+                notifyWidgetsDataHasChanged();
+
             }
         }).attachToRecyclerView(stockRecyclerView);
         stockRecyclerView.setContentDescription(getString(R.string.a11y_description_swipe_to_delete));
 
 
+    }
+
+    private void notifyWidgetsDataHasChanged() {
+        Intent dataUpdatedIntent = new Intent(QuoteSyncJob.ACTION_DATA_UPDATED);
+        this.sendBroadcast(dataUpdatedIntent);
     }
 
     private boolean networkUp() {
@@ -101,24 +113,36 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onRefresh() {
-
         QuoteSyncJob.syncImmediately(this);
 
         if (!networkUp() && adapter.getItemCount() == 0) {
-            swipeRefreshLayout.setRefreshing(false);
-            error.setText(getString(R.string.error_no_network));
-            error.setVisibility(View.VISIBLE);
+            showNoDataInfo();
         } else if (!networkUp()) {
-            swipeRefreshLayout.setRefreshing(false);
-            Toast.makeText(this, R.string.toast_no_connectivity, Toast.LENGTH_LONG).show();
+            showNoNetworkToast();
         } else if (PrefUtils.getStocks(this).size() == 0) {
-            swipeRefreshLayout.setRefreshing(false);
-            error.setText(getString(R.string.error_no_stocks));
-            error.setVisibility(View.VISIBLE);
+            showNoStocksAddedInfo();
         } else {
             error.setVisibility(View.GONE);
         }
     }
+
+    private void showNoStocksAddedInfo() {
+        swipeRefreshLayout.setRefreshing(false);
+        error.setText(getString(R.string.error_no_stocks));
+        error.setVisibility(View.VISIBLE);
+    }
+
+    private void showNoNetworkToast() {
+        swipeRefreshLayout.setRefreshing(false);
+        Toast.makeText(this, R.string.toast_no_connectivity, Toast.LENGTH_LONG).show();
+    }
+
+    private void showNoDataInfo() {
+        swipeRefreshLayout.setRefreshing(false);
+        error.setText(getString(R.string.error_no_data_available));
+        error.setVisibility(View.VISIBLE);
+    }
+
 
     public void button(@SuppressWarnings("UnusedParameters") View view) {
         new AddStockDialog().show(getFragmentManager(), "StockDialogFragment");
@@ -141,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        swipeRefreshLayout.setRefreshing(true);
         return new CursorLoader(this,
                 Contract.Quote.URI,
                 Contract.Quote.QUOTE_COLUMNS.toArray(new String[]{}),
@@ -149,15 +174,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        swipeRefreshLayout.setRefreshing(false);
 
         if (data.getCount() != 0) {
             error.setVisibility(View.GONE);
-        } if (!networkUp()) {
-            swipeRefreshLayout.setRefreshing(false);
-            Toast.makeText(this, R.string.toast_no_connectivity, Toast.LENGTH_LONG).show();
+        }  else {
+            showNoDataInfo();
+        }
+
+        if (!networkUp()) {
+            showNoNetworkToast();
         }
         adapter.setCursor(data);
+        swipeRefreshLayout.setRefreshing(false);
+
     }
 
 
@@ -196,6 +225,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             PrefUtils.toggleDisplayMode(this);
             setDisplayModeMenuItemIcon(item);
             adapter.notifyDataSetChanged();
+            notifyWidgetsDataHasChanged();
             return true;
         }
         return super.onOptionsItemSelected(item);
