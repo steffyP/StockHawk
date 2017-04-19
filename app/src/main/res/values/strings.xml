@@ -8,20 +8,18 @@
 
 
     <string name="pref_display_mode_key" translatable="false">displayMode</string>
-    <string name="pref_display_mode_default">@string/pref_display_mode_percentage_key</string>
+    <string name="pref_display_mode_default" translatable="false">@string/pref_display_mode_percentage_key</string>
 
     <string name="pref_display_mode_absolute_key" translatable="false">absolute</string>
     <string name="pref_display_mode_percentage_key" translatable="false">percentage</string>
 
 
-    <!-- Default Values for filling the list on start TODO maybe needs to removed? -->
+    <!-- Default Values for filling the list on start -->
     <string name="default_stocks_yahoo" translatable="false">YHOO</string>
     <string name="default_stocks_apple" translatable="false">AAPL</string>
     <string name="default_stocks_microsoft" translatable="false">MSFT</string>
     <string name="default_stocks_facebook" translatable="false">FB</string>
 
-    <!--TODO do we need this?-->
-    <!--<string name="action_change_units">@string/pref_display_mode_key</string>-->
 
 
     <!-- Dialog for adding stock -->
@@ -50,7 +48,12 @@
     <string name="a11y_description_swipe_to_delete">Swipe to left to delete the stock from the list.</string>
     <string name="a11y_swipe_to_refresh">Swipe down to refresh the stock list</string>
     <string name="a11y_description_chart">Chart describing details of stock</string>
+
+
+    <!-- Stock Details -->
     <string name="title_details">Details - Historic Data</string>
+
+    <!-- Widget -->
     <string name="empty_view_text">No stock information available.</string>
 
 </resources>
