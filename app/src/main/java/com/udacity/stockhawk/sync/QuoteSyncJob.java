@@ -75,21 +75,18 @@ public final class QuoteSyncJob {
 
 
                 Stock stock = quotes.get(symbol);
+
+
+                if(stock == null){
+                    removeInvalidStock(context, symbol);
+                    continue;
+                }
                 StockQuote quote = stock.getQuote();
 
                 boolean hasValidPrice = quote.getPrice() != null;
 
                 if (!hasValidPrice) {
-                    // we can assume that there exists no stock with this symbol
-                    //so we show a message and remove the stock from the preference
-                    PrefUtils.removeStock(context, symbol);
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(context, context.getString(R.string.toast_unknown_stock, symbol), Toast.LENGTH_SHORT).show();
-                            // this will run in the main thread
-                        }
-                    });
+                    removeInvalidStock(context, symbol);
                     continue;
                 }
                 float price = quote.getPrice().floatValue();
@@ -133,6 +130,19 @@ public final class QuoteSyncJob {
         } catch (IOException exception) {
             Timber.e(exception, "Error fetching stock quotes");
         }
+    }
+
+    private static void removeInvalidStock(final Context context, final String symbol) {
+        // we can assume that there exists no stock with this symbol
+        //so we show a message and remove the stock from the preference
+        PrefUtils.removeStock(context, symbol);
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(context, context.getString(R.string.toast_unknown_stock, symbol), Toast.LENGTH_SHORT).show();
+                // this will run in the main thread
+            }
+        });
     }
 
     private static void schedulePeriodic(Context context) {
